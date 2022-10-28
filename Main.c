@@ -109,6 +109,7 @@ void loadNotesFromFile()
         int noteCode = 0b0;
         int timeToNextNote = 0;
         const char NLINE = '\n';
+        const char ENDNOTE = '$';
         const int ASCII_INT_OFFSET = 48;
 
         for(int i=0; buff[i] != NLINE; i++)
@@ -147,6 +148,10 @@ void loadNotesFromFile()
             {
                 timeToNextNote *= 10;
                 timeToNextNote += (buff[i]-ASCII_INT_OFFSET);
+            }
+            else if (buff[i] == ENDNOTE)
+            {
+                break;
             }
             else
             {
@@ -191,8 +196,8 @@ int main()
     freeNote();
     printf("here    %d     here\n", popNote()->note);
     freeNote();
-    
-    deleteNotes();
+
+    //deleteNotes();
 
     return 0;
 }
