@@ -5,13 +5,17 @@
 #include <pthread.h>
 #include <time.h>
 
-#include <ctype.h> //check if note digit
+#include <ctype.h> //check if note is digit
 
 #define NOTES_FILE_PATH "SampleNotes.txt"
+#define NO_NOTE_CODE 0b0000
 #define GREEN_NOTE_CODE 0b1000 //could maybe just do bit shifting
 #define RED_NOTE_CODE 0b0100
 #define YELLOW_NOTE_CODE 0b0010
 #define BLUE_NOTE_CODE 0b0001
+#define FRAME_RATE 300 //needs to be experimentally defined
+
+bool notesFinished = false;
 
 typedef struct NoteInfo { 
     int note;
@@ -28,6 +32,8 @@ noteInfo* tailNoteDisplay = NULL;
 
 noteInfo* currentNote = NULL;
 
+pthread_mutex_t displayQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+
 //Dr. Brian's function
 //Program sleeps for specified time in ms
 static void sleepForMs(long long delayInMs)
@@ -41,11 +47,26 @@ static void sleepForMs(long long delayInMs)
     nanosleep(&reqDelay, (struct timespec *) NULL);
 }
 
+//Dr. Brian's function
+//Return current Unix time in ms
+static long long getTimeInMs(void)
+{
+	struct timespec spec;
+	clock_gettime(CLOCK_REALTIME, &spec);
+	long long seconds = spec.tv_sec;
+	long long nanoSeconds = spec.tv_nsec;
+	long long milliSeconds = seconds * 1000
+	+ nanoSeconds / 1000000;
+	return milliSeconds;
+}
+
 void addNote(noteInfo* note, noteInfo** headNote, noteInfo** tailNote)
 {
     if((*headNote) == NULL)
     {
         (*headNote) = note;
+        (*headNote) -> nextNote = NULL;
+        (*headNote) -> previousNote = NULL;
     }
     else
     {
@@ -55,7 +76,7 @@ void addNote(noteInfo* note, noteInfo** headNote, noteInfo** tailNote)
     (*tailNote) = note;
 }
 
-noteInfo* popNote(noteInfo** headNote, noteInfo** tailNote) //does not account for empty queue
+noteInfo* popNote(noteInfo** headNote, noteInfo** tailNote)
 {
     currentNote = (*headNote);
     if ((*headNote) != (*tailNote))
@@ -79,9 +100,11 @@ void freeNote()
 
 void deleteNotes(noteInfo** headNote, noteInfo** tailNote)
 {
+    int i = 0;
     while((*headNote) != NULL)
     {
         popNote(headNote, tailNote);
+        printf("Deleting    %d     here   %d\n", currentNote->note, i++);
         freeNote();
     }
 
@@ -94,16 +117,57 @@ void* readNoteToDisplayQueue(void* arg)
 {
     while(headNoteFile != NULL)
     {
-        //mutex lock
-        addNote(popNote(&headNoteFile, &tailNoteFile), &headNoteDisplay, &tailNoteDisplay);
-        printf("here    %d     here\n", popNote(&headNoteDisplay, &tailNoteDisplay)->note);
+        pthread_mutex_lock(&displayQueueMutex);
+        {
+            addNote(popNote(&headNoteFile, &tailNoteFile), &headNoteDisplay, &tailNoteDisplay);
+        }
+        pthread_mutex_unlock(&displayQueueMutex);
         sleepForMs(currentNote->timeToNextNote);
-        freeNote();
-        //mutex unlock
     }
-
+    notesFinished = true;
 }
 
+void readDisplay()
+{
+    noteInfo* it = tailNoteDisplay;
+    int i = 0;
+    printf("===============================\n\n");
+    while(it != NULL)
+    {
+        printf("Reading    %d     here   %d\n", it->note, i++);
+        it = it->nextNote;
+    }
+    printf("===============================\n\n");
+}
+
+//TODO: frame rate should be decoupled from adding spacer
+//      score, button, and strum checking should be done in this thread
+void* addSpacerNote(void* arg)
+{
+    long long startTimeSpacer = getTimeInMs();
+    while(headNoteDisplay != NULL)
+    {
+        if(getTimeInMs()-startTimeSpacer > FRAME_RATE)
+        {
+            startTimeSpacer = getTimeInMs();
+            pthread_mutex_lock(&displayQueueMutex);
+            {
+                readDisplay();
+                if(!notesFinished)
+                {
+                    noteInfo* newNote = malloc(sizeof(*newNote)); //WRITE INIT FUNCTION
+                    newNote -> note = NO_NOTE_CODE;
+                    newNote -> timeToNextNote = 0;
+                    addNote(newNote, &headNoteDisplay, &tailNoteDisplay);
+                    newNote = NULL;
+                }
+                popNote(&headNoteDisplay, &tailNoteDisplay);
+                freeNote();
+            }
+            pthread_mutex_unlock(&displayQueueMutex);  
+        }
+    }
+}
 
 void* eraseNote(void* _)
 {
@@ -219,16 +283,30 @@ int main(int argc, char **argv)
 {
     loadNotesFromFile();
 
+    //Follows Dr. Brian's notes on threads
     pthread_t noteAdder;
+    pthread_t spaceAdder;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     int* nullArg = 0;
 
-    pthread_create(&noteAdder, &attr, readNoteToDisplayQueue, &nullArg);
-    pthread_join(noteAdder, NULL);
+    for(int i=0; i < 17; i++)
+    {
+        noteInfo* newNote = malloc(sizeof(*newNote)); //WRITE INIT FUNCTION
+        newNote -> note = NO_NOTE_CODE;
+        newNote -> timeToNextNote = 0;
+        addNote(newNote, &headNoteDisplay, &tailNoteDisplay);
+        newNote = NULL;
+    }
 
-    deleteNotes(&headNoteFile, &tailNoteFile);
-    deleteNotes(&headNoteDisplay, &tailNoteDisplay);
+    pthread_create(&noteAdder, &attr, readNoteToDisplayQueue, &nullArg);
+    pthread_create(&spaceAdder, &attr, addSpacerNote, &nullArg);
+    pthread_join(noteAdder, NULL);
+    pthread_join(spaceAdder, NULL);
+
+    deleteNotes(&headNoteFile, &tailNoteFile); //safety
+    readDisplay();
+    deleteNotes(&headNoteDisplay, &tailNoteDisplay); //safety
 
     return 0;
 }
