@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <pthread.h>
+#include <time.h>
 
 #include <ctype.h> //check if note digit
 
@@ -18,32 +20,54 @@ typedef struct NoteInfo {
     struct NoteInfo* previousNote;
 } noteInfo;
 
-noteInfo* headNote = NULL;
-noteInfo* tailNote = NULL;
+noteInfo* headNoteFile = NULL;
+noteInfo* tailNoteFile = NULL;
+
+noteInfo* headNoteDisplay = NULL;
+noteInfo* tailNoteDisplay = NULL;
+
 noteInfo* currentNote = NULL;
 
-void addNote(noteInfo* note)
+//Dr. Brian's function
+//Program sleeps for specified time in ms
+static void sleepForMs(long long delayInMs)
 {
-    if(headNote == NULL)
+    const long long NS_PER_MS = 1000 * 1000;
+    const long long NS_PER_SECOND = 1000000000;
+    long long delayNs = delayInMs * NS_PER_MS;
+    int seconds = delayNs / NS_PER_SECOND;
+    int nanoseconds = delayNs % NS_PER_SECOND;
+    struct timespec reqDelay = {seconds, nanoseconds};
+    nanosleep(&reqDelay, (struct timespec *) NULL);
+}
+
+void addNote(noteInfo* note, noteInfo** headNote, noteInfo** tailNote)
+{
+    if((*headNote) == NULL)
     {
-        headNote = note;
+        (*headNote) = note;
     }
     else
     {
-        tailNote -> previousNote = note;
-        note -> nextNote = tailNote;
+        (*tailNote) -> previousNote = note;
+        note -> nextNote = (*tailNote);
     }
-    tailNote = note;
+    (*tailNote) = note;
 }
 
-noteInfo* popNote() //does not account for empty queue
+noteInfo* popNote(noteInfo** headNote, noteInfo** tailNote) //does not account for empty queue
 {
-    currentNote = headNote;
-    if (headNote != tailNote)
+    currentNote = (*headNote);
+    if ((*headNote) != (*tailNote))
     {
-        headNote -> previousNote -> nextNote = NULL;
-        headNote = headNote -> previousNote;
-        currentNote -> previousNote = NULL;
+        (*headNote) -> previousNote -> nextNote = NULL;
+        (*headNote) = (*headNote) -> previousNote;
+        currentNote -> previousNote = NULL; //this is a problem need 2
+    }
+    else
+    {
+        (*headNote) = NULL;
+        (*tailNote) = NULL;
     }
     return currentNote;
 }
@@ -53,42 +77,47 @@ void freeNote()
     free(currentNote);
 }
 
-void deleteNotes()
+void deleteNotes(noteInfo** headNote, noteInfo** tailNote)
 {
-    while(headNote != tailNote)
+    while((*headNote) != NULL)
     {
-        popNote();
+        popNote(headNote, tailNote);
         freeNote();
     }
-    popNote();
-    freeNote();
 
     currentNote = NULL;
-    headNote = NULL;
-    tailNote = NULL;
+    (*headNote) = NULL;
+    (*tailNote) = NULL;
+}
+
+void* readNoteToDisplayQueue(void* arg)
+{
+    while(headNoteFile != NULL)
+    {
+        //mutex lock
+        addNote(popNote(&headNoteFile, &tailNoteFile), &headNoteDisplay, &tailNoteDisplay);
+        printf("here    %d     here\n", popNote(&headNoteDisplay, &tailNoteDisplay)->note);
+        sleepForMs(currentNote->timeToNextNote);
+        freeNote();
+        //mutex unlock
+    }
+
 }
 
 
-
-
-void* readNote(void* _)
+void* eraseNote(void* _)
 {
 
-}
-
-void* writeNote(void* _)
-{
-    
 }
 
 void* updateDisplay(void* _)
 {
-    
+    //refresh display
 }
 
 void* convertToDisplay(void* _)
 {
-    
+
 }
 
 void loadNotesFromFile()
@@ -161,7 +190,7 @@ void loadNotesFromFile()
         noteInfo* newNote = malloc(sizeof(*newNote)); //WRITE INIT FUNCTION
         newNote -> note = noteCode;
         newNote -> timeToNextNote = timeToNextNote;
-        addNote(newNote);
+        addNote(newNote, &headNoteFile, &tailNoteFile);
         newNote = NULL;
     }
     printf("\n");    
@@ -186,18 +215,20 @@ void updateScore()
 
 }
 
-int main()
+int main(int argc, char **argv)
 {
     loadNotesFromFile();
 
-    printf("here    %d     here\n", popNote()->note);
-    freeNote();
-    printf("here    %d     here\n", popNote()->note);
-    freeNote();
-    printf("here    %d     here\n", popNote()->note);
-    freeNote();
+    pthread_t noteAdder;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    int* nullArg = 0;
 
-    //deleteNotes();
+    pthread_create(&noteAdder, &attr, readNoteToDisplayQueue, &nullArg);
+    pthread_join(noteAdder, NULL);
+
+    deleteNotes(&headNoteFile, &tailNoteFile);
+    deleteNotes(&headNoteDisplay, &tailNoteDisplay);
 
     return 0;
 }
