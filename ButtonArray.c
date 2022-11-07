@@ -1,6 +1,17 @@
-#ifndef BUTTONARRAY_H
-#define BUTTONARRAY_H
+
 #include "ButtonArray.h"
+#define BUTTON_1 "/sys/class/gpio/gpio70"
+#define BUTTON_2 "/sys/class/gpio/gpio71"
+#define BUTTON_3 "/sys/class/gpio/gpio78"
+#define BUTTON_4 "/sys/class/gpio/gpio79"
+#define BUTTON_5 "/sys/class/gpio/gpio81"
+
+#define VALUE_PATH "/value"
+#define DIRECTION_PATH "/direction"
+#define ACTIVE_LOW_PATH "/active_low"
+#define BUTTON_ARRAY_SIZE 5
+
+char* ButtonArray[] = {BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4, BUTTON_5};
 
 static void writeToFile(char* path, char* arg){
     // Use fopen() to open the file for write access.
@@ -58,7 +69,22 @@ static int readFromFile(char* button){
     return atoi(buff);
 }
 
+//helper function to concat two strings
+//from https://stackoverflow.com/questions/8465006/how-do-i-concatenate-two-strings-in-c
+static char* concat(const char *s1, const char *s2)
+{
+    char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+    // in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
 
+void getButtonValues(int *values){
+    for(int i = 0; i< BUTTON_ARRAY_SIZE; i++){
+        values[i] = readFromFile(concat(ButtonArray[i], VALUE_PATH));
+    }
+}
 void initializeButtons(){
     //set each config
     runCommand("config-pin P8.34 gpio");
@@ -66,32 +92,29 @@ void initializeButtons(){
     runCommand("config-pin P8.37 gpio");
     runCommand("config-pin P8.45 gpio");
     runCommand("config-pin P8.46 gpio");
-    writeToFile("/sys/class/gpio/gpio70/direction", "in");
-    writeToFile("/sys/class/gpio/gpio71/direction", "in");
-    writeToFile("/sys/class/gpio/gpio78/direction", "in");
-    writeToFile("/sys/class/gpio/gpio79/direction", "in");
-    writeToFile("/sys/class/gpio/gpio81/direction", "in");
-    writeToFile("/sys/class/gpio/gpio70/active_low", "0");
-    writeToFile("/sys/class/gpio/gpio71/active_low", "0");
-    writeToFile("/sys/class/gpio/gpio78/active_low", "0");
-    writeToFile("/sys/class/gpio/gpio79/active_low", "0");
-    writeToFile("/sys/class/gpio/gpio81/active_low", "0");
+    for(int i=0; i < BUTTON_ARRAY_SIZE; i++){
+        char* directionPath = concat(ButtonArray[i], DIRECTION_PATH);
+        writeToFile(directionPath, "in");
+        char* active_low= concat(ButtonArray[i], ACTIVE_LOW_PATH);
+        writeToFile(active_low, "0");
+
+    }
 }
 
-int getButtonValue(char* button){
-    return readFromFile(button);
+
+void test(){
+    while(true){
+        int values[BUTTON_ARRAY_SIZE];
+        getButtonValues(values);
+        for(int i=0; i< BUTTON_ARRAY_SIZE; i++){
+            printf("Button %i: %i\n", i, values[i]);
+        }
+        sleepForMS(100);
+    }
 }
 
 int main(){
     initializeButtons();
-    while(true){
-        printf("Button 1: %i\n", getButtonValue(BUTTON_1_VALUE));
-        printf("Button 2: %i\n", getButtonValue(BUTTON_2_VALUE));
-        printf("Button 3: %i\n", getButtonValue(BUTTON_3_VALUE));
-        printf("Button 4: %i\n", getButtonValue(BUTTON_4_VALUE));
-        printf("Button 5: %i\n\n", getButtonValue(BUTTON_5_VALUE));
-        sleepForMS(100);
-    }
+    test();
     return 0;
 }
-#endif

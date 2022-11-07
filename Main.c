@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <pthread.h>
 #include <time.h>
-
+#include "ButtonArray.h"
 #include <ctype.h> //check if note is digit
 
 #define NOTES_FILE_PATH "SampleNotes.txt"
