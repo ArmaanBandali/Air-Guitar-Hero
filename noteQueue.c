@@ -25,6 +25,8 @@ void NoteQueue_addNote(noteInfo *note, noteInfo **headNote, noteInfo **tailNote)
     (*tailNote) = note;
 }
 
+// Return is redundant here
+// Caller must ensure note is freed
 noteInfo *NoteQueue_popNote(noteInfo **headNote, noteInfo **tailNote, noteInfo **currentNote)
 {
     (*currentNote) = (*headNote);
@@ -32,9 +34,9 @@ noteInfo *NoteQueue_popNote(noteInfo **headNote, noteInfo **tailNote, noteInfo *
     {
         (*headNote)->previousNote->nextNote = NULL;
         (*headNote) = (*headNote)->previousNote;
-        (*currentNote)->previousNote = NULL; // this is a problem need 2
+        (*currentNote)->previousNote = NULL;
     }
-    else
+    else //this condition is if note is last note in queue
     {
         (*headNote) = NULL;
         (*tailNote) = NULL;
@@ -42,9 +44,11 @@ noteInfo *NoteQueue_popNote(noteInfo **headNote, noteInfo **tailNote, noteInfo *
     return *currentNote;
 }
 
+// Free is separate from pop to allow more flexibility
 void NoteQueue_freeNote(noteInfo *currentNote)
 {
     free(currentNote);
+    currentNote = NULL;
 }
 
 void NoteQueue_deleteNotes(noteInfo **headNote, noteInfo **tailNote, noteInfo **currentNote)
@@ -62,7 +66,10 @@ void NoteQueue_deleteNotes(noteInfo **headNote, noteInfo **tailNote, noteInfo **
     (*tailNote) = NULL;
 }
 
+
 //If this process is long, potential for desync. May need its own thread that all other threads must wait for
+//ORs valid notes to a binary note code
+//
 int NoteQueue_loadNotesFromFile(noteInfo **headNote, noteInfo **tailNote)
 {
     int timeToFirstNote = 0;
@@ -131,10 +138,10 @@ int NoteQueue_loadNotesFromFile(noteInfo **headNote, noteInfo **tailNote)
             }
             else if (isdigit(buff[i]))
             {
-                timeToNextNote *= 10;
-                timeToNextNote += (buff[i] - ASCII_INT_OFFSET);
+                timeToNextNote *= 10; //shift each decimal digit left
+                timeToNextNote += (buff[i] - ASCII_INT_OFFSET); //get value of int
             }
-            else if (buff[i] == ENDNOTE)
+            else if (buff[i] == ENDNOTE) //ENDNOTE signifies last charcter before eof
             {
                 if(i==0)
                 {
@@ -147,7 +154,7 @@ int NoteQueue_loadNotesFromFile(noteInfo **headNote, noteInfo **tailNote)
                 continue;
             }
         }
-        if(!comment)
+        if(!comment) //skip adding note if line was a comment
         {
             if(noteCode == 0)
             {

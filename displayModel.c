@@ -22,7 +22,13 @@ pthread_t spaceAdder;
 pthread_attr_t attr;
 pthread_mutex_t displayQueueMutex = PTHREAD_MUTEX_INITIALIZER;
 
-void DisplayModel_readDisplay() // testing function
+static void DisplayModel_readDisplay();
+static void *DisplayModel_readNoteToDisplayQueue(void *arg);
+static void *DisplayModel_addSpacerNote(void *arg);
+static void DisplayModel_initializeWithSpacers(int numSpacers);
+static void DisplayModel_stopDisplayModel();
+
+static void DisplayModel_readDisplay() // testing function to read what's in display queue
 {
         noteInfo *it = tailNoteDisplayQueue;
         int i = 0;
@@ -35,7 +41,8 @@ void DisplayModel_readDisplay() // testing function
         printf("===============================\n\n");
 }
 
-void *DisplayModel_readNoteToDisplayQueue(void *arg)
+// Thread function to retrieve the next note to be played and queue it for display, then sleep for time in ms until next note
+static void *DisplayModel_readNoteToDisplayQueue(void *arg)
 {
     while (headNoteFileQueue != NULL)
     {
@@ -49,9 +56,10 @@ void *DisplayModel_readNoteToDisplayQueue(void *arg)
     notesFinished = true;
 }
 
-void *DisplayModel_addSpacerNote(void *arg)
+// Thread function to add spaces (empty notes) between notes at the rate defined by FRAME_RATE
+static void *DisplayModel_addSpacerNote(void *arg)
 {
-    long long startTimeSpacer = Utils_getTimeInMs();
+    long long startTimeSpacer = Utils_getTimeInMs(); //should use sleep to prevent busy wait
     while (headNoteDisplayQueue != NULL)
     {
         if (Utils_getTimeInMs() - startTimeSpacer > FRAME_RATE)
@@ -68,7 +76,7 @@ void *DisplayModel_addSpacerNote(void *arg)
                     NoteQueue_addNote(newNote, &headNoteDisplayQueue, &tailNoteDisplayQueue);
                     newNote = NULL;
                 }
-                NoteQueue_popNote(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue);
+                NoteQueue_popNote(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue); //might want to decouple this
                 NoteQueue_freeNote(currentNoteDisplayQueue); //may want to save note's info before freeing
             }
             pthread_mutex_unlock(&displayQueueMutex);
@@ -76,7 +84,8 @@ void *DisplayModel_addSpacerNote(void *arg)
     }
 }
 
-void DisplayModel_initializeWithSpacers(int numSpacers)
+// Add empty notes to display queue to introduce delay between song start and first note
+static void DisplayModel_initializeWithSpacers(int numSpacers)
 {
     for (int i = 0; i < numSpacers; i++)
     {
@@ -100,9 +109,17 @@ void DisplayModel_startDisplayModel()
     DisplayModel_stopDisplayModel();
 }
 
-void DisplayModel_stopDisplayModel()
+//Clean up memory
+static void DisplayModel_stopDisplayModel()
 {
     NoteQueue_deleteNotes(&headNoteFileQueue, &tailNoteFileQueue, &currentNoteDisplayQueue); // safety
     DisplayModel_readDisplay();
     NoteQueue_deleteNotes(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue); // safety
+    NoteQueue_freeNote(currentNoteDisplayQueue);
+    NoteQueue_freeNote(currentNoteFileQueue);
+}
+
+noteInfo *getheadNoteDisplayQueue()
+{
+    return headNoteDisplayQueue;
 }

@@ -2,8 +2,6 @@
 
 #include "utils.h"
 
-// Dr. Brian's function
-// Program sleeps for specified time in ms
 void Utils_sleepForMs(long long delayInMs)
 {
     const long long NS_PER_MS = 1000 * 1000;
@@ -15,8 +13,6 @@ void Utils_sleepForMs(long long delayInMs)
     nanosleep(&reqDelay, (struct timespec *)NULL);
 }
 
-// Dr. Brian's function
-// Return current Unix time in ms
 long long Utils_getTimeInMs(void)
 {
     struct timespec spec;
