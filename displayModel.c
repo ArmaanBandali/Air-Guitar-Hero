@@ -26,7 +26,6 @@ static void DisplayModel_readDisplay();
 static void *DisplayModel_readNoteToDisplayQueue(void *arg);
 static void *DisplayModel_addSpacerNote(void *arg);
 static void DisplayModel_initializeWithSpacers(int numSpacers);
-static void DisplayModel_stopDisplayModel();
 
 static void DisplayModel_readDisplay() // testing function to read what's in display queue
 {
@@ -104,14 +103,12 @@ void DisplayModel_startDisplayModel()
     DisplayModel_initializeWithSpacers(timeToFirstNote/FRAME_RATE + NUM_SPACERS_FOR_DISPLAY_SIZE); //Should potentially be ceiling function instead of int division
     pthread_create(&noteAdder, &attr, DisplayModel_readNoteToDisplayQueue, NULL);
     pthread_create(&spaceAdder, &attr, DisplayModel_addSpacerNote, NULL);
-    pthread_join(noteAdder, NULL);
-    pthread_join(spaceAdder, NULL);
-    DisplayModel_stopDisplayModel();
 }
 
-//Clean up memory
-static void DisplayModel_stopDisplayModel()
+void DisplayModel_stopDisplayModel()
 {
+    pthread_join(noteAdder, NULL);
+    pthread_join(spaceAdder, NULL);
     NoteQueue_deleteNotes(&headNoteFileQueue, &tailNoteFileQueue, &currentNoteDisplayQueue); // safety
     DisplayModel_readDisplay();
     NoteQueue_deleteNotes(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue); // safety
@@ -119,7 +116,7 @@ static void DisplayModel_stopDisplayModel()
     NoteQueue_freeNote(currentNoteFileQueue);
 }
 
-noteInfo *getheadNoteDisplayQueue()
+noteInfo *getHeadNoteDisplayQueue()
 {
     return headNoteDisplayQueue;
 }
