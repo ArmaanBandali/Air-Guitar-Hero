@@ -50,6 +50,18 @@ void ButtonArray_test()
         for(int i=0; i< BUTTON_ARRAY_SIZE; i++){
             printf("Button %i: %i\n", i, values[i]);
         }
+        ButtonArray_buttonValuesToNote(values);
         Utils_sleepForMs(100);
+    }
+}
+
+int ButtonArray_buttonValuesToNote(int* values)
+{
+    int notePlayed = 0;
+    for (int i=0; i < BUTTON_ARRAY_SIZE; i++)
+    {
+        values[i] = values[i] << i;
+        notePlayed = notePlayed | values[i];
+        printf("value%d            note%d\n", values[i], notePlayed);
     }
 }
