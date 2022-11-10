@@ -5,7 +5,7 @@ $Terminate last note in file with '$'
 $Valid note lines should be composed of a valid note code (any combination of characters 'G', 'R', 'Y', 'B', 'O') and the time in ms until the next note
 $The first line in the file should only contain the time in ms until the first note (no note code!)
 
-1500
+4500 $Experimentally, this should be at least 4500
 G,1500
 RYB,1500
 Y,1500 $
