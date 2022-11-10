@@ -60,8 +60,9 @@ int ButtonArray_buttonValuesToNote(int* values)
     int notePlayed = 0;
     for (int i=0; i < BUTTON_ARRAY_SIZE; i++)
     {
-        values[i] = values[i] << i;
+        values[i] = values[i] << (BUTTON_ARRAY_SIZE - 1 - i);
         notePlayed = notePlayed | values[i];
-        printf("value%d            note%d\n", values[i], notePlayed);
+        //printf("value%d            note%d\n", values[i], notePlayed);
     }
+    return notePlayed;
 }

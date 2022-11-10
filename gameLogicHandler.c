@@ -1,5 +1,7 @@
 #include <stdbool.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "displayModel.h"
 #include "noteQueue.h"
@@ -7,6 +9,7 @@
 
 bool gameOver = false;
 bool noteHit = false;
+int score = 0;
 
 pthread_t gameLogicThread;
 static pthread_attr_t attr;
@@ -15,14 +18,25 @@ static void *GameLogicHandler_startThread(void *arg)
 {
     while(!gameOver) //should this sleep? would need to be closely coupled with displayModel+
     {
-        noteInfo* activeNote = getHeadNoteDisplayQueue();
-        if (activeNote == NULL) //displayModel joins before GameLogicHandler, so note may be null
+        int activeNoteValue = 0;
+        DisplayQueue_lockDisplayQueueMutex();
         {
-            continue; //could probably break here
+            if (DisplayQueue_getHeadNoteDisplayQueue() == NULL) // displayModel joins before GameLogicHandler, so note may be null
+            {
+                continue; // could probably break here
+            }
+            activeNoteValue = DisplayQueue_getHeadNoteDisplayQueue()->note;
         }
+        DisplayQueue_unlockDisplayQueueMutex();
         int activeButtonValues[5] ={0, 0, 0, 0, 0};
         ButtonArray_getButtonValues(activeButtonValues);
-        //TODO Compare int value of note to button values and update noteHit
+        int buttonNoteValue = ButtonArray_buttonValuesToNote(activeButtonValues);
+    
+        if (activeNoteValue == buttonNoteValue)
+        {
+            score++;
+            printf("\n=================\nHooray!\n==================\n");
+        }
     }
 }
 

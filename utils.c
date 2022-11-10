@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+int m = 0;
+
 void Utils_sleepForMs(long long delayInMs)
 {
     const long long NS_PER_MS = 1000 * 1000;
@@ -59,9 +61,8 @@ void Utils_writeToFile(char *path, char *arg)
         printf("ERROR: Unable to open file.\n");
         exit(1);
     }
-    // Write to data to the file using fprintf():
+    
     fprintf(pFile, "%s", arg);
-    // Close the file using fclose():
     fclose(pFile);
 }
 
@@ -76,6 +77,7 @@ int Utils_readIntFromFile(char *button)
     const int MAX_LENGTH = 1024;
     char buff[MAX_LENGTH];
     fgets(buff, MAX_LENGTH, readFile);
+    fclose(readFile);
     return atoi(buff); // can return buffer then caller can atoi
 }
 

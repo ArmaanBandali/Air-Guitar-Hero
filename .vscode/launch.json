@@ -27,6 +27,28 @@
             ],
             "preLaunchTask": "C/C++: gcc build active file",
             "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "GDB cross debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "~/cmpt433/public/myApps/air_guitar_hero_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "cross compile",
+            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "miDebuggerServerAddress": "192.168.7.2:2001"
         }
     ]
 }
