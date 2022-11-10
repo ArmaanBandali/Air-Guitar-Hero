@@ -16,9 +16,12 @@ static pthread_attr_t attr;
 
 static void *GameLogicHandler_startThread(void *arg)
 {
+    int lastNoteValue = 0;
+    bool noteAlreadyHit = false;
     while(!gameOver) //should this sleep? would need to be closely coupled with displayModel+
     {
         int activeNoteValue = 0;
+
         DisplayQueue_lockDisplayQueueMutex();
         {
             if (DisplayQueue_getHeadNoteDisplayQueue() == NULL) // displayModel joins before GameLogicHandler, so note may be null
@@ -28,15 +31,22 @@ static void *GameLogicHandler_startThread(void *arg)
             activeNoteValue = DisplayQueue_getHeadNoteDisplayQueue()->note;
         }
         DisplayQueue_unlockDisplayQueueMutex();
+
         int activeButtonValues[5] ={0, 0, 0, 0, 0};
         ButtonArray_getButtonValues(activeButtonValues);
         int buttonNoteValue = ButtonArray_buttonValuesToNote(activeButtonValues);
-    
-        if (activeNoteValue == buttonNoteValue)
+
+        if (noteAlreadyHit && lastNoteValue != activeNoteValue)
+        {
+            noteAlreadyHit = false;
+        }
+        if (activeNoteValue == buttonNoteValue && !noteAlreadyHit) //check if note is correct and not already hit
         {
             score++;
             printf("\n=================\nHooray!\n==================\n");
+            noteAlreadyHit = true;
         }
+        lastNoteValue = activeNoteValue;
     }
 }
 
