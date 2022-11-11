@@ -30,7 +30,6 @@ static void *GameLogicHandler_startThread(void *arg)
             }
             activeNoteValue = DisplayQueue_getHeadNoteDisplayQueue()->note;
         }
-        DisplayQueue_unlockDisplayQueueMutex();
 
         int activeButtonValues[5] ={0, 0, 0, 0, 0};
         ButtonArray_getButtonValues(activeButtonValues);
@@ -40,13 +39,14 @@ static void *GameLogicHandler_startThread(void *arg)
         {
             noteAlreadyHit = false;
         }
-        if (activeNoteValue == buttonNoteValue && !noteAlreadyHit) //check if note is correct and not already hit
+        if (activeNoteValue == buttonNoteValue && !noteAlreadyHit && activeNoteValue != 0) //check if note is correct and not already hit
         {
             score++;
             printf("\n=================\nHooray!\n==================\n");
             noteAlreadyHit = true;
         }
         lastNoteValue = activeNoteValue;
+        DisplayQueue_unlockDisplayQueueMutex();
     }
 }
 
@@ -61,4 +61,9 @@ void GameLogicHandler_stopLogicHandler()
 {
     gameOver = true;
     pthread_join(gameLogicThread, NULL);
+}
+
+int GameLogicHandler_getScore()
+{
+    return score;
 }

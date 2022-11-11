@@ -34,8 +34,18 @@ static void DisplayModel_readDisplay() // testing function to read what's in dis
         printf("===============================\n\n");
         while (it != NULL)
         {
-            printf("Reading    %d     here   %d\n", it->note, i++);
+            if(it->note > 0)
+            {
+                printf("\033[1;31m");
+                printf("Reading note  %d      -%d-\n", it->note, i);
+            }
+            else
+            {
+                printf("                      -%d-\n", i);
+            }
             it = it->nextNote;
+            printf("\033[0m");
+            i++;
         }
         printf("===============================\n\n");
 }
@@ -64,8 +74,8 @@ static void *DisplayModel_popQueue(void *arg)
         Utils_sleepForMs(FRAME_RATE); // questionable
         DisplayQueue_lockDisplayQueueMutex();
         {
-            DisplayModel_readDisplay();
             NoteQueue_popNote(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue);
+            DisplayModel_readDisplay();
             NoteQueue_freeNote(currentNoteDisplayQueue); //may want to save note's info before freeing
         }
         DisplayQueue_unlockDisplayQueueMutex();

@@ -5,5 +5,6 @@
 
 void GameLogicHandler_startLogicHandler();
 void GameLogicHandler_stopLogicHandler();
+int GameLogicHandler_getScore();
 
 #endif

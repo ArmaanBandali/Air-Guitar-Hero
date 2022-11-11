@@ -5,7 +5,7 @@
 
 #include "noteQueue.h"
 
-#define FRAME_RATE 300 // needs to be experimentally defined or defined per song
+#define FRAME_RATE 400 // needs to be experimentally defined or defined per song
 #define NUM_SPACERS_FOR_DISPLAY_SIZE 15 //dependent on physical display
 
 // Initialize display model parameters and start display model threads
