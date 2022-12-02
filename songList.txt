@@ -1,0 +1,3 @@
+song A, audioFileLocationHere, leaderboardFileHere
+song B, audioFileLocationHere, leaderboardFileHere
+song C, audioFileLocationHere, leaderboardFileHere

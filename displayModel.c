@@ -36,6 +36,7 @@ static void DisplayModel_readDisplay() // testing function to read what's in dis
         {
             if(it->note > 0)
             {
+                //colour
                 printf("\033[1;31m");
                 printf("Reading note  %d      -%d-\n", it->note, i);
             }
@@ -97,6 +98,7 @@ static void DisplayModel_addSpacers(int numSpacers)
 
 void DisplayModel_startDisplayModel()
 {
+    //TODO update with chosen song file
     int timeToFirstNote = NoteQueue_loadNotesFromFile(&headNoteFileQueue, &tailNoteFileQueue);
     pthread_attr_init(&attr);
     DisplayModel_addSpacers(timeToFirstNote/FRAME_RATE + NUM_SPACERS_FOR_DISPLAY_SIZE); //Should potentially be ceiling function instead of int division
@@ -109,7 +111,7 @@ void DisplayModel_stopDisplayModel()
     pthread_join(noteAdder, NULL);
     pthread_join(queuePopper, NULL);
     NoteQueue_deleteNotes(&headNoteFileQueue, &tailNoteFileQueue, &currentNoteDisplayQueue); // safety
-    DisplayModel_readDisplay();
+    DisplayModel_readDisplay(); //safety debugging
     NoteQueue_deleteNotes(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue); // safety
     NoteQueue_freeNote(currentNoteDisplayQueue);
     NoteQueue_freeNote(currentNoteFileQueue);

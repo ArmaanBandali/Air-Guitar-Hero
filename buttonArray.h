@@ -14,4 +14,14 @@ void ButtonArray_test();
 // Convert button values from file to note value schema defined in note queue
 int ButtonArray_buttonValuesToNote(int *values);
 
+void ButtonArray_start();
+
+void ButtonArray_stop();
+
+void ButtonArray_lockButtonMutex();
+
+void ButtonArray_unlockButtonMutex();
+
+int ButtonArray_getCurrentButtonValue();
+
 #endif

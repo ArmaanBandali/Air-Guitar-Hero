@@ -18,7 +18,7 @@ static void *GameLogicHandler_startThread(void *arg)
 {
     int lastNoteValue = 0;
     bool noteAlreadyHit = false;
-    while(!gameOver) //should this sleep? would need to be closely coupled with displayModel+
+    while(!gameOver) //should this sleep? would need to be closely coupled with displayModel
     {
         int activeNoteValue = 0;
 
@@ -30,11 +30,16 @@ static void *GameLogicHandler_startThread(void *arg)
             }
             activeNoteValue = DisplayQueue_getHeadNoteDisplayQueue()->note;
         }
+        DisplayQueue_unlockDisplayQueueMutex();
 
-        int activeButtonValues[5] ={0, 0, 0, 0, 0};
-        ButtonArray_getButtonValues(activeButtonValues);
-        int buttonNoteValue = ButtonArray_buttonValuesToNote(activeButtonValues);
+        int buttonNoteValue = 0;
 
+        ButtonArray_lockButtonMutex();
+        {
+            buttonNoteValue = ButtonArray_getCurrentButtonValue();
+        }
+        ButtonArray_unlockButtonMutex();
+        
         if (noteAlreadyHit && lastNoteValue != activeNoteValue)
         {
             noteAlreadyHit = false;
@@ -46,15 +51,17 @@ static void *GameLogicHandler_startThread(void *arg)
             noteAlreadyHit = true;
         }
         lastNoteValue = activeNoteValue;
-        DisplayQueue_unlockDisplayQueueMutex();
     }
 }
 
 void GameLogicHandler_startLogicHandler()
 {
-    ButtonArray_initializeButtons();
+    DisplayModel_startDisplayModel();
     pthread_attr_init(&attr);
     pthread_create(&gameLogicThread, &attr, GameLogicHandler_startThread, NULL);
+    DisplayModel_stopDisplayModel();
+    GameLogicHandler_stopLogicHandler();
+    //TODO Write to leaderboard file
 }
 
 void GameLogicHandler_stopLogicHandler()
