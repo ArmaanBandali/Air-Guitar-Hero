@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #include "displayModel.h"
 #include "buttonArray.h"
 #include "songList.h"
 
-static void printHomeScreen();
+#define STATUS_QUIT 0
+#define STATUS_CONTINUE 1
+
+
+static int printHomeScreen();
 static void selectMenuItem();
 static void cleanup();
 
@@ -17,6 +22,9 @@ typedef enum{
 
 gameMenuItems selectedMenuItem = SONG_SELECT;
 
+pthread_t gameInstanceThread;
+static pthread_attr_t attr;
+
 int main(int argc, char **argv)
 {
 
@@ -24,32 +32,56 @@ int main(int argc, char **argv)
     //TODO Start Strum
     //TODO Start Display
 
-    printHomeScreen();
+    pthread_attr_init(&attr);
 
-    while (true)
+    while(true)
     {
-        // Quit?
-        if (toupper(getchar()) == 'Q')
+        pthread_create(&gameInstanceThread, &attr, runGameInstance, NULL);
+
+        int *returnStatus;
+        pthread_join(gameInstanceThread, &returnStatus);
+
+        if (*returnStatus == STATUS_QUIT)
         {
+            cleanUp();
             break;
         }
+        else if (*returnStatus == STATUS_CONTINUE)
+        {
+            continue;
+        }
     }
-    cleanUp();
+
     return 0;
 }
 
-static void printHomeScreen()
+static void* runGameInstance(void*_)
+{
+    int returnCode = printHomeScreen();
+    return &returnCode;
+}
+
+static int printHomeScreen()
 {
     //TODO Write home screen to display
     printf("Air Guitar Hero\n\n");
     printf("Main Menu:\n");
     printf("    Song Select\n");
-    printf("    Leaderboards");
+    printf("    Leaderboards\n");
+    printf("    Quit\n");
 
     char choice;
 
-    while (scanf("%c", choice) != 'a' || scanf("%c", choice) != 'b') //Placeholder using a and b for song select and leaderboard
+    scanf("%c", choice);
+    while (choice != 'a' || choice != 'b' || choice != 'q') // Placeholder using a and b for song select and leaderboard
     {
+        printf("Invalid choice: Please enter a,b, or q\n\n");
+        printf("Air Guitar Hero\n\n");
+        printf("Main Menu:\n");
+        printf("    Song Select\n");
+        printf("    Leaderboards\n");
+        printf("    Quit\n");
+        scanf("%c", choice);
     }
 
     switch (choice)
@@ -62,23 +94,20 @@ static void printHomeScreen()
     case 'b':
         SongList_manageSongList(LEADERBOARD);
         break;
+    case 'q':
+        return STATUS_QUIT;
 
     default:
         break;
     }
 
-    //TODO handle logic here for after song list activity
+    return STATUS_CONTINUE;
 }
 
 static void cleanup()
 {
     ButtonArray_stop();
-}
-
-void resetModule()
-{
-    //TODO reset module after returning to main menu
-    //Need similar resets for gameLogicHandler and displayModel
+    //TODO stop other threads
 }
 
 // static void selectMenuItem()

@@ -6,6 +6,7 @@
 #include "displayModel.h"
 #include "noteQueue.h"
 #include "utils.h"
+#include "songList.h"
 
 noteInfo *headNoteDisplayQueue = NULL;
 noteInfo *tailNoteDisplayQueue = NULL;
@@ -96,10 +97,9 @@ static void DisplayModel_addSpacers(int numSpacers)
     }
 }
 
-void DisplayModel_startDisplayModel()
+void DisplayModel_startDisplayModel(songInfo selectedSong)
 {
-    //TODO update with chosen song file
-    int timeToFirstNote = NoteQueue_loadNotesFromFile(&headNoteFileQueue, &tailNoteFileQueue);
+    int timeToFirstNote = NoteQueue_loadNotesFromFile(selectedSong.notesFileLocation, &headNoteFileQueue, &tailNoteFileQueue);
     pthread_attr_init(&attr);
     DisplayModel_addSpacers(timeToFirstNote/FRAME_RATE + NUM_SPACERS_FOR_DISPLAY_SIZE); //Should potentially be ceiling function instead of int division
     pthread_create(&noteAdder, &attr, DisplayModel_readNoteToDisplayQueue, NULL);
@@ -115,6 +115,13 @@ void DisplayModel_stopDisplayModel()
     NoteQueue_deleteNotes(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue); // safety
     NoteQueue_freeNote(currentNoteDisplayQueue);
     NoteQueue_freeNote(currentNoteFileQueue);
+    headNoteDisplayQueue = NULL;
+    tailNoteDisplayQueue = NULL;
+    currentNoteDisplayQueue = NULL;
+
+    headNoteFileQueue = NULL;
+    tailNoteFileQueue = NULL;
+    currentNoteFileQueue = NULL;
 }
 
 noteInfo *DisplayQueue_getHeadNoteDisplayQueue()

@@ -25,7 +25,7 @@ typedef struct NoteInfo
 //                -last note is terminated with '$'
 //                -each valid note line has a note code (any combination of characters 'G', 'R', 'Y', 'B', 'O') and the time in ms until the next note
 //                -max line length is 1024 characters
-int NoteQueue_loadNotesFromFile(noteInfo **headNote, noteInfo **tailNote);
+int NoteQueue_loadNotesFromFile(char* songNoteFile, noteInfo **headNote, noteInfo **tailNote);
 
 // Delete all notes from the queue defined by head and tail pointers
 void NoteQueue_deleteNotes(noteInfo **headNote, noteInfo **tailNote, noteInfo **currentNote);

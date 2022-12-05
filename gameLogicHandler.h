@@ -3,8 +3,9 @@
 #ifndef GAME_LOGIC_HANDLER
 #define GAME_LOGIC_HANDLER
 
-void GameLogicHandler_startLogicHandler();
+void GameLogicHandler_startLogicHandler(songInfo selectedSong);
 void GameLogicHandler_stopLogicHandler();
 int GameLogicHandler_getScore();
+
 
 #endif

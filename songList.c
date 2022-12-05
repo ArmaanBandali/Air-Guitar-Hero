@@ -7,7 +7,7 @@
 
 #define SONG_LIST_FILE ""
 
-songInfo songList[MAX_SONG_LIMIT];
+static songInfo songList[MAX_SONG_LIMIT];
 
 int songsLoaded = 0;
 
@@ -19,6 +19,7 @@ static void SongList_displaySongList();
 static void SongList_selectSong();
 static void SongList_songSelected();
 
+//Uses comma delimiter
 static void SongList_loadSongsFromFile()
 {
     FILE *pFile = fopen(SONG_LIST_FILE, "r");
@@ -39,6 +40,7 @@ static void SongList_loadSongsFromFile()
         char* songName = "";
         char* audioFileLocation = "";
         char* leaderboardFileLocation = "";
+        char* notesFileLocation = "";
 
         if(buff[0] == NLINE)
         {
@@ -65,6 +67,10 @@ static void SongList_loadSongsFromFile()
                 {
                     leaderboardFileLocation += buff[i];
                 }
+                else if (whichString == 3)
+                {
+                    notesFileLocation += buff[i];
+                }
             }
             else
             {
@@ -75,6 +81,7 @@ static void SongList_loadSongsFromFile()
         songList[songsLoaded].songName = songName;
         songList[songsLoaded].audioFileLocation = audioFileLocation;
         songList[songsLoaded].leaderboardFileLocation = leaderboardFileLocation;
+        songList[songsLoaded].notesFileLocation = notesFileLocation;
         songsLoaded++;
     }
 
@@ -87,15 +94,16 @@ void SongList_manageSongList(gameState state)
     SongList_displaySongList();
     SongList_selectSong();
     SongList_songSelected();
+    SongList_resetModule();
 }
 
 static void SongList_displaySongList()
 {
-    // PLaceholder code for display
-    printf("Song List\n");
+    // Placeholder code for display
+    printf("Song List\n\nSelect a song by typing its name\n");
     for(int i=0; i<songsLoaded; i++)
     {
-        printf("%s",songList[i].songName);
+        printf("%s\n",songList[i].songName);
     }
 }
 
@@ -118,6 +126,11 @@ static void SongList_selectSong()
                 selectedSong = songList[i];
             }
         }
+        if(!songFound)
+        {
+            printf("Invalid song choice: Type the name of the song you want to play\n\n");
+            SongList_displaySongList();
+        }
     } while (!songFound);
 
 }
@@ -130,14 +143,13 @@ static void SongList_songSelected()
     }
     else if(SongList_getGameState == SONG_SELECT)
     {
-        GameLogicHandler_startLogicHandler(); 
+        GameLogicHandler_startLogicHandler(selectedSong); 
     }
-    //TODO handle logic here for after game launched
 }
 
+//Manage anything that was dynamically allocated
 void SongList_resetModule()
 {
-    //TODO reset module when returning to song list menu
 }
 
 void SongList_setGameState(gameState state)
