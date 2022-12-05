@@ -24,5 +24,6 @@ int getXReading();
 void accelerometer_unlockMutex();
 void accelerometer_lockMutex();
 
-
+_Bool getStrum();
+void setStrum(_Bool setStrum);
 #endif

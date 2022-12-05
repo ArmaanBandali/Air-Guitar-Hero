@@ -11,6 +11,8 @@ static _Bool stopping = false;
 static pthread_t accelThreadId;
 static pthread_mutex_t accelMutex = PTHREAD_MUTEX_INITIALIZER;
 
+static _Bool strum = false;
+
 void sleepForMs(long long delayInMs)
 {
     const long long NS_PER_MS = 1000 * 1000;
@@ -63,26 +65,52 @@ int getXReading()
 void* accelerometerThread(void* _arg)
 {
     int x = 0;
+    int reset = 0;
     while(!stopping) {
         x = getXReading();
-
-        if(x < ACCEL_THRESHOLD_LOW || x > ACCEL_THRESHOLD_HIGH){
-            printf("Strum:%i \n", x);
+        if (reset) {
+            if (x > ACCEL_THRESHOLD_LOW && x < ACCEL_THRESHOLD_HIGH)
+            {
+                reset = 0;  
+            }
+        } 
+        else {
+            if (x < ACCEL_THRESHOLD_LOW || x > ACCEL_THRESHOLD_HIGH)
+            {
+                reset = 1;
+                printf("Strum \n");
+            }
         }
-        sleepForMs(500);
+        sleepForMs(250);
     }
 
     return NULL;
 }
 
 
-void accelerometer_unlockMutex()
+void accelerometer_lockMutex()
 {
     pthread_mutex_lock(&accelMutex);
 }
 
-void accelerometer_lockMutex()
+void accelerometer_unlockMutex()
 {
     pthread_mutex_unlock(&accelMutex);
 }
 
+
+void setStrum(_Bool setStrum)
+{
+    accelerometer_lockMutex();
+    strum = setStrum;
+    accelerometer_unlockMutex();
+}
+
+_Bool getStrum()
+{
+    _Bool getStrum = false;
+    accelerometer_lockMutex();
+    strum = getStrum;
+    accelerometer_unlockMutex();
+    return getStrum;
+}
