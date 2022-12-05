@@ -115,7 +115,7 @@ void ButtonArray_lockButtonMutex()
     pthread_mutex_lock(&buttonArrayMutex);
 }
 
-void ButtonArray_lockButtonMutex()
+void ButtonArray_unlockButtonMutex()
 {
     pthread_mutex_unlock(&buttonArrayMutex);
 }

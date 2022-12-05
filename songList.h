@@ -9,6 +9,7 @@ typedef struct {
     char* songName;
     char* audioFileLocation;
     char* leaderboardFileLocation;
+    char* notesFileLocation;
 }songInfo;
 
 void SongList_manageSongList(gameState state);

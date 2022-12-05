@@ -9,7 +9,7 @@
 #define NUM_SPACERS_FOR_DISPLAY_SIZE 15 //dependent on physical display
 
 // Initialize display model parameters and start display model threads
-void DisplayModel_startDisplayModel();
+void DisplayModel_startDisplayModel(songInfo selectedSong);
 
 // Clean up memory
 void DisplayModel_stopDisplayModel();
