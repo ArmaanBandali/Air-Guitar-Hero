@@ -1,0 +1,59 @@
+$To comment this file, start line with '$'
+$
+$Limit line length to 1024 characters
+$Terminate last note in file with '$'
+$Valid note lines should be composed of a valid note code (any combination of characters 'G', 'R', 'Y', 'B', 'O') and the time in ms until the next note
+$The first line in the file should only contain the time in ms until the first note (no note code!)
+$R- C
+$G - G
+$Y - A
+$B - F  
+$O - E
+$Y - D
+
+
+5000
+GR,1000
+GY,1000
+R,625
+R,625
+G,625
+G,625
+Y,625
+Y,625
+G,1250
+B,625
+B,625
+O,625
+O,625
+Y,625
+Y,625
+R,1250
+G,625
+G,625
+B,625
+B,625
+O,625
+O,625
+Y,1250 
+G,625
+G,625
+B,625
+B,625
+O,625
+O,625
+Y,1250 
+R,625
+R,625
+G,625
+G,625
+Y,625
+Y,625
+G,1250
+B,625
+B,625
+O,625
+O,625
+Y,625
+Y,625 
+R,1250 $
