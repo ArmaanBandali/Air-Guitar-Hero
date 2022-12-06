@@ -1,5 +1,5 @@
 TARGET= AirGuitarHero
-SOURCES= accelerometer.c buttonArray.c displayModel.c gameLogicHandler.c gameStart.c noteQueue.c songList.c utils.c wave_player.c
+SOURCES= accelerometer.c buttonArray.c displayModel.c gameLogicHandler.c gameStart.c I2C.c noteQueue.c songList.c utils.c wave_player.c
 
 PUBDIR = $(HOME)/cmpt433/public/myApps
 OUTDIR = $(PUBDIR)

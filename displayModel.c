@@ -7,6 +7,7 @@
 #include "noteQueue.h"
 #include "utils.h"
 #include "songList.h"
+#include "I2C.h"
 
 noteInfo *headNoteDisplayQueue = NULL;
 noteInfo *tailNoteDisplayQueue = NULL;
@@ -15,6 +16,8 @@ noteInfo *currentNoteDisplayQueue = NULL;
 noteInfo *headNoteFileQueue = NULL;
 noteInfo *tailNoteFileQueue = NULL;
 noteInfo *currentNoteFileQueue = NULL;
+
+int i2cFileDesc = 0;
 
 bool notesFinished = false;
 
@@ -78,6 +81,7 @@ static void *DisplayModel_popQueue(void *arg)
         DisplayQueue_lockDisplayQueueMutex();
         {
             NoteQueue_popNote(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue);
+            I2C_writeReg(i2cFileDesc, currentNoteDisplayQueue->note, 0);
             DisplayModel_readDisplay();
             NoteQueue_freeNote(currentNoteDisplayQueue); //may want to save note's info before freeing
         }
@@ -102,6 +106,7 @@ static void DisplayModel_addSpacers(int numSpacers)
 void DisplayModel_startDisplayModel(songInfo selectedSong)
 {
     int timeToFirstNote = NoteQueue_loadNotesFromFile(selectedSong.notesFileLocation, &headNoteFileQueue, &tailNoteFileQueue);
+    i2cFileDesc = I2C_initBus(I2CDRV_LINUX_BUS1, 0x08);
     pthread_attr_init(&attr);
     DisplayModel_addSpacers(timeToFirstNote/FRAME_RATE + NUM_SPACERS_FOR_DISPLAY_SIZE); //Should potentially be ceiling function instead of int division
     pthread_create(&noteAdder, &attr, DisplayModel_readNoteToDisplayQueue, NULL);
