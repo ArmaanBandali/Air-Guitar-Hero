@@ -7,6 +7,7 @@
 #include "noteQueue.h"
 #include "buttonArray.h"
 #include "songList.h"
+#include "gameLogicHandler.h"
 
 bool gameOver = false;
 bool noteHit = false;
@@ -53,6 +54,7 @@ static void *GameLogicHandler_startThread(void *arg)
         }
         lastNoteValue = activeNoteValue;
     }
+    return 0;
 }
 
 void GameLogicHandler_startLogicHandler(songInfo selectedSong)

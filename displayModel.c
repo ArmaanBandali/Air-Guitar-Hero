@@ -66,6 +66,7 @@ static void *DisplayModel_readNoteToDisplayQueue(void *arg)
         Utils_sleepForMs(currentNoteFileQueue->timeToNextNote);
     }
     notesFinished = true;
+    return 0;
 }
 
 // Thread function to pop the display queue at the rate defined by FRAME_RATE
@@ -82,6 +83,7 @@ static void *DisplayModel_popQueue(void *arg)
         }
         DisplayQueue_unlockDisplayQueueMutex();
     }
+    return 0;
 }
 
 // Add empty notes to display queue to introduce delay between notes
@@ -111,7 +113,6 @@ void DisplayModel_stopDisplayModel()
     pthread_join(noteAdder, NULL);
     pthread_join(queuePopper, NULL);
     NoteQueue_deleteNotes(&headNoteFileQueue, &tailNoteFileQueue, &currentNoteDisplayQueue); // safety
-    DisplayModel_readDisplay(); //safety debugging
     NoteQueue_deleteNotes(&headNoteDisplayQueue, &tailNoteDisplayQueue, &currentNoteDisplayQueue); // safety
     NoteQueue_freeNote(currentNoteDisplayQueue);
     NoteQueue_freeNote(currentNoteFileQueue);

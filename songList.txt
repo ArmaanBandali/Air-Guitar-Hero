@@ -1,3 +1,4 @@
-song A, audioFileLocationHere, leaderboardFileLocationHere, notesFileLocationHere
-song B, audioFileLocationHere, leaderboardFileLocationHere, notesFileLocationHere
-song C, audioFileLocationHere, leaderboardFileLocationHere, notesFileLocationHere
+
+song A,audioFileLocationHere,leaderboardFileLocationHere,SampleNotes.txt,
+song B,audioFileLocationHere,leaderboardFileLocationHere,notesFileLocationHere,
+song C,audioFileLocationHere,leaderboardFileLocationHere,notesFileLocationHere,

@@ -3,6 +3,8 @@
 #ifndef GAME_LOGIC_HANDLER
 #define GAME_LOGIC_HANDLER
 
+#include "songList.h"
+
 void GameLogicHandler_startLogicHandler(songInfo selectedSong);
 void GameLogicHandler_stopLogicHandler();
 int GameLogicHandler_getScore();

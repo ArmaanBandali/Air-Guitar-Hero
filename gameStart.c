@@ -11,16 +11,17 @@
 
 
 static int printHomeScreen();
-static void selectMenuItem();
+//static void selectMenuItem();
 static void cleanup();
+static void *runGameInstance(void *_);
 
-typedef enum{
-    SONG_SELECT,
+typedef enum {
+    SONG_SELECTION,
     LEADERBOARDS,
     END_OF_MENU
-}gameMenuItems;
+} gameMenuItems;
 
-gameMenuItems selectedMenuItem = SONG_SELECT;
+gameMenuItems selectedMenuItem = SONG_SELECTION;
 
 pthread_t gameInstanceThread;
 static pthread_attr_t attr;
@@ -38,15 +39,15 @@ int main(int argc, char **argv)
     {
         pthread_create(&gameInstanceThread, &attr, runGameInstance, NULL);
 
-        int *returnStatus;
+        void *returnStatus;
         pthread_join(gameInstanceThread, &returnStatus);
 
-        if (*returnStatus == STATUS_QUIT)
+        if (((int)returnStatus) == STATUS_QUIT)
         {
-            cleanUp();
+            cleanup();
             break;
         }
-        else if (*returnStatus == STATUS_CONTINUE)
+        else if (((int)returnStatus) == STATUS_CONTINUE)
         {
             continue;
         }
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
 static void* runGameInstance(void*_)
 {
     int returnCode = printHomeScreen();
-    return &returnCode;
+    return (void*)returnCode;
 }
 
 static int printHomeScreen()
@@ -72,8 +73,9 @@ static int printHomeScreen()
 
     char choice;
 
-    scanf("%c", choice);
-    while (choice != 'a' || choice != 'b' || choice != 'q') // Placeholder using a and b for song select and leaderboard
+    scanf(" %c", &choice);
+    fflush(stdin);
+    while (choice != 'a' && choice != 'b' && choice != 'q') // Placeholder using a and b for song select and leaderboard
     {
         printf("Invalid choice: Please enter a,b, or q\n\n");
         printf("Air Guitar Hero\n\n");
@@ -81,18 +83,19 @@ static int printHomeScreen()
         printf("    Song Select\n");
         printf("    Leaderboards\n");
         printf("    Quit\n");
-        scanf("%c", choice);
+        scanf(" %c", &choice);
+        fflush(stdin);
     }
 
     switch (choice)
     {
     case 'a':
         //Launch song list with state
-        SongList_manageSongList(SONG_SELECT);
+        SongList_manageSongList(SONG_SELECTION);
 
         break;
     case 'b':
-        SongList_manageSongList(LEADERBOARD);
+        SongList_manageSongList(LEADERBOARDS);
         break;
     case 'q':
         return STATUS_QUIT;

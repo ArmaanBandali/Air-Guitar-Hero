@@ -1,11 +1,11 @@
-/*
+ /*
  *  Small program to read a 16-bit, signed, 44.1kHz wave file and play it.
  *  Written by Brian Fraser, heavily based on code found at:
  *  http://www.alsa-project.org/alsa-doc/alsa-lib/_2test_2pcm_min_8c-example.html
  */
 
 #include "wave_player.h"
-#include <alsa/asoundlib.h>
+//#include <alsa/asoundlib.h>
 
 // File used for play-back:
 // If cross-compiling, must have this file available, via this relative path,
@@ -20,19 +20,17 @@
 
 // Store data of a single wave file read into memory.
 // Space is dynamically allocated; must be freed correctly!
-typedef struct {
+/* typedef struct {
 	int numSamples;
 	short *pData;
 } wavedata_t;
 
 // Prototypes:
-snd_pcm_t *Audio_openDevice();
-void Audio_readWaveFileIntoMemory(char *fileName, wavedata_t *pWaveStruct);
-void Audio_playFile(snd_pcm_t *handle, wavedata_t *pWaveData);
+static snd_pcm_t *Audio_openDevice();
+static void Audio_readWaveFileIntoMemory(char *fileName, wavedata_t *pWaveStruct);
+static void Audio_playFile(snd_pcm_t *handle, wavedata_t *pWaveData);
 
-
-
-void wave_player_playSong(char* filepath)
+void wave_player_playSong(char *filepath)
 {
 	printf("Beginning play-back of %s\n", filepath);
 
@@ -145,5 +143,5 @@ static void Audio_playFile(snd_pcm_t *handle, wavedata_t *pWaveData)
 	}
 	if (frames > 0 && frames < pWaveData->numSamples)
 		printf("Short write (expected %d, wrote %li)\n", pWaveData->numSamples, frames);
-}
+} */
 
