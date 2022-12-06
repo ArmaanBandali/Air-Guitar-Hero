@@ -5,14 +5,14 @@
  */
 
 #include "wave_player.h"
-//#include <alsa/asoundlib.h>
+#include <alsa/asoundlib.h>
 
 // File used for play-back:
 // If cross-compiling, must have this file available, via this relative path,
 // on the target when the application is run. This example's Makefile copies the wave-files/
 // folder along with the executable to ensure both are present.
 
-//#define SOURCE_FILE "wave-files/100053__menegass__gui-drum-cc.wav"
+#define SOURCE_FILE "wave-files/100053__menegass__gui-drum-cc.wav"
 
 #define SAMPLE_RATE   48000
 #define NUM_CHANNELS  2
@@ -20,7 +20,7 @@
 
 // Store data of a single wave file read into memory.
 // Space is dynamically allocated; must be freed correctly!
-/* typedef struct {
+typedef struct {
 	int numSamples;
 	short *pData;
 } wavedata_t;
@@ -143,5 +143,5 @@ static void Audio_playFile(snd_pcm_t *handle, wavedata_t *pWaveData)
 	}
 	if (frames > 0 && frames < pWaveData->numSamples)
 		printf("Short write (expected %d, wrote %li)\n", pWaveData->numSamples, frames);
-} */
+}
 
