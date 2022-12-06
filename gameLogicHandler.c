@@ -8,6 +8,7 @@
 #include "buttonArray.h"
 #include "songList.h"
 #include "gameLogicHandler.h"
+#include "accelerometer.h"
 
 bool gameOver = false;
 bool noteHit = false;
@@ -41,12 +42,19 @@ static void *GameLogicHandler_startThread(void *arg)
             buttonNoteValue = ButtonArray_getCurrentButtonValue();
         }
         ButtonArray_unlockButtonMutex();
+
+        bool strumHit = false;
+        accelerometer_lockMutex();
+        {
+            strumHit = accelerometer_getStrum();
+        }
+        accelerometer_unlockMutex();
         
         if (noteAlreadyHit && lastNoteValue != activeNoteValue)
         {
             noteAlreadyHit = false;
         }
-        if (activeNoteValue == buttonNoteValue && !noteAlreadyHit && activeNoteValue != 0) //check if note is correct and not already hit
+        if (activeNoteValue == buttonNoteValue && !noteAlreadyHit && activeNoteValue != 0 && strumHit) //check if note is correct and not already hit
         {
             score++;
             printf("\n=================\nHooray!\n==================\n");

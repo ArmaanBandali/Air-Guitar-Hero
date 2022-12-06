@@ -7,5 +7,13 @@ $The first line in the file should only contain the time in ms until the first n
 
 100
 G,1000
-RYB,1000
-Y,1000 $
+G,1000
+G,1000
+G,1000
+G,1000
+G,1000
+G,1000
+G,1000
+G,1000
+G,1000
+G,1000 $

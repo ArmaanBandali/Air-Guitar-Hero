@@ -4,27 +4,15 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#include "utils.h"
+
 
 // Accel threading
 void* accelerometerThread(void* arg);
 static _Bool stopping = false;
 static pthread_t accelThreadId;
 static pthread_mutex_t accelMutex = PTHREAD_MUTEX_INITIALIZER;
-
-static _Bool strum = false;
-
-void sleepForMs(long long delayInMs)
-{
-    const long long NS_PER_MS = 1000 * 1000;
-    const long long NS_PER_SECOND = 1000000000;
-
-    long long delayNs = delayInMs * NS_PER_MS;
-    int seconds = delayNs / NS_PER_SECOND;
-    int nanoseconds = delayNs % NS_PER_SECOND;
-
-    struct timespec reqDelay = {seconds, nanoseconds};
-    nanosleep(&reqDelay, (struct timespec *) NULL);
-}
+static bool strumHit = false;
 
 void accelerometer_init(void)
 {
@@ -73,15 +61,25 @@ void* accelerometerThread(void* _arg)
             {
                 reset = 0;  
             }
+            accelerometer_lockMutex();
+            {
+                accelerometer_setStrum(false);
+            }
+            accelerometer_unlockMutex();
         } 
         else {
             if (x < ACCEL_THRESHOLD_LOW || x > ACCEL_THRESHOLD_HIGH)
             {
                 reset = 1;
-                printf("Strum \n");
+                //printf("Strum \n");
+                accelerometer_lockMutex();
+                {
+                    accelerometer_setStrum(true);
+                }
+                accelerometer_unlockMutex();
             }
         }
-        sleepForMs(250);
+       Utils_sleepForMs(ACCEL_SAMPLING_PERIOD);
     }
 
     return NULL;
@@ -98,19 +96,12 @@ void accelerometer_unlockMutex()
     pthread_mutex_unlock(&accelMutex);
 }
 
-
-void setStrum(_Bool setStrum)
+void accelerometer_setStrum(_Bool setStrum)
 {
-    accelerometer_lockMutex();
-    strum = setStrum;
-    accelerometer_unlockMutex();
+    strumHit = setStrum;
 }
 
-_Bool getStrum()
+bool accelerometer_getStrum()
 {
-    _Bool getStrum = false;
-    accelerometer_lockMutex();
-    strum = getStrum;
-    accelerometer_unlockMutex();
-    return getStrum;
+    return strumHit;
 }

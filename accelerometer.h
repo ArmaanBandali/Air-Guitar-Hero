@@ -6,10 +6,8 @@
 #define X_FILE_VOLTAGE2 "/sys/bus/iio/devices/iio:device0/in_voltage2_raw"
 #define ACCEL_THRESHOLD_LOW 1900
 #define ACCEL_THRESHOLD_HIGH 2200
+#define ACCEL_SAMPLING_PERIOD 300
 
-
-// sleep func
-void sleepForMs(long long delayInMs);
 
 // init() must be called before any other functions,
 // cleanup() must be called last to stop playback threads and free memory.
@@ -24,6 +22,6 @@ int getXReading();
 void accelerometer_unlockMutex();
 void accelerometer_lockMutex();
 
-_Bool getStrum();
-void setStrum(_Bool setStrum);
+_Bool accelerometer_getStrum();
+void accelerometer_setStrum(_Bool setStrum);
 #endif

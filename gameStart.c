@@ -5,6 +5,7 @@
 #include "displayModel.h"
 #include "buttonArray.h"
 #include "songList.h"
+#include "accelerometer.h"
 
 #define STATUS_QUIT 0
 #define STATUS_CONTINUE 1
@@ -30,6 +31,7 @@ int main(int argc, char **argv)
 {
 
     ButtonArray_start();
+    accelerometer_init();
     //TODO Start Strum
     //TODO Start Display
 
@@ -110,6 +112,7 @@ static int printHomeScreen()
 static void cleanup()
 {
     ButtonArray_stop();
+    accelerometer_cleanup();
     //TODO stop other threads
 }
 
