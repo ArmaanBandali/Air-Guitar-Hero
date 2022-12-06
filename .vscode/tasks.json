@@ -7,13 +7,13 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${fileDirname}/*.c",
+                "~/Desktop/Air-Guitar-Hero/*.c",
                 "-pthread",
                 "-o",
-                "${fileDirname}/air_guitar_hero_test"
+                "~/Desktop/Air-Guitar-Hero/air_guitar_hero_test"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "~/Desktop/Air-Guitar-Hero/"
             },
             "problemMatcher": [
                 "$gcc"
@@ -60,6 +60,12 @@
                 "C/C++: gcc cross build active file",
                 "copy exec"
             ]
+        },
+        {
+            "label": "run Makefile",
+            "command": "",
+            "args": ["make"],
+            "type": "shell"
         }
     ],
     "version": "2.0.0"

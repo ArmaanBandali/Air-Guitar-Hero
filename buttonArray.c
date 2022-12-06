@@ -44,6 +44,7 @@ static void *ButtonArray_startSampling(void *_)
         ButtonArray_unlockButtonMutex();
         Utils_sleepForMs(BUTTON_SLEEP_TIME_MS);
     }
+    return 0;
 }
 
 
@@ -80,8 +81,9 @@ void ButtonArray_initializeButtons()
         char *directionPath = Utils_concat(ButtonArray[i], DIRECTION_PATH);
         Utils_writeToFile(directionPath, "in");
         char *active_low = Utils_concat(ButtonArray[i], ACTIVE_LOW_PATH);
-        //TODO Does return from concat need to be freed?
         Utils_writeToFile(active_low, "0");
+        free(active_low);
+        free(directionPath);
     }
 }
 
@@ -115,7 +117,7 @@ void ButtonArray_lockButtonMutex()
     pthread_mutex_lock(&buttonArrayMutex);
 }
 
-void ButtonArray_lockButtonMutex()
+void ButtonArray_unlockButtonMutex()
 {
     pthread_mutex_unlock(&buttonArrayMutex);
 }

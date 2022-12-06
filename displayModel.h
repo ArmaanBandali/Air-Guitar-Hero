@@ -4,12 +4,13 @@
 #define DISPLAY_MODEL
 
 #include "noteQueue.h"
+#include "songList.h"
 
 #define FRAME_RATE 400 // needs to be experimentally defined or defined per song
 #define NUM_SPACERS_FOR_DISPLAY_SIZE 15 //dependent on physical display
 
 // Initialize display model parameters and start display model threads
-void DisplayModel_startDisplayModel();
+void DisplayModel_startDisplayModel(songInfo selectedSong);
 
 // Clean up memory
 void DisplayModel_stopDisplayModel();

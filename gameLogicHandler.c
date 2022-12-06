@@ -6,6 +6,8 @@
 #include "displayModel.h"
 #include "noteQueue.h"
 #include "buttonArray.h"
+#include "songList.h"
+#include "gameLogicHandler.h"
 
 bool gameOver = false;
 bool noteHit = false;
@@ -52,15 +54,19 @@ static void *GameLogicHandler_startThread(void *arg)
         }
         lastNoteValue = activeNoteValue;
     }
+    return 0;
 }
 
-void GameLogicHandler_startLogicHandler()
+void GameLogicHandler_startLogicHandler(songInfo selectedSong)
 {
-    DisplayModel_startDisplayModel();
+    DisplayModel_startDisplayModel(selectedSong);
     pthread_attr_init(&attr);
     pthread_create(&gameLogicThread, &attr, GameLogicHandler_startThread, NULL);
+
+    //Blocks until song finishes
     DisplayModel_stopDisplayModel();
     GameLogicHandler_stopLogicHandler();
+    
     //TODO Write to leaderboard file
 }
 

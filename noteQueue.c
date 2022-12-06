@@ -6,6 +6,7 @@
 
 #include "noteQueue.h"
 #include "utils.h"
+#include "songList.h"
 
 #define NOTES_FILE_PATH "SampleNotes.txt"
 
@@ -70,14 +71,15 @@ void NoteQueue_deleteNotes(noteInfo **headNote, noteInfo **tailNote, noteInfo **
 //If this process is long, potential for desync. May need its own thread that all other threads must wait for
 //ORs valid notes to a binary note code
 //
-int NoteQueue_loadNotesFromFile(noteInfo **headNote, noteInfo **tailNote)
+int NoteQueue_loadNotesFromFile(char* songNoteFile, noteInfo **headNote, noteInfo **tailNote)
 {
     int timeToFirstNote = 0;
 
-    FILE *pFile = fopen(NOTES_FILE_PATH, "r");
+    //FILE *pFile = fopen(NOTES_FILE_PATH, "r");
+    FILE *pFile = fopen(songNoteFile, "r");
     if (pFile == NULL)
     {
-        printf("ERROR: Unable to open file (%s) for read\n", NOTES_FILE_PATH);
+        printf("ERROR: Unable to open file (%s) for read\n", songNoteFile);
         exit(-1);
     }
 
