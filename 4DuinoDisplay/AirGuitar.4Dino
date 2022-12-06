@@ -1,0 +1,457 @@
+%%Display%%.DefineResetLine ;      // *Replaced* at compile time with define for reset line connected to the display
+%%Display%%.DefineDisplaySerialx ; // *Replaced* at compile time with define the Serial Port connected to the display
+
+%%Display%%.IncludeSerial_4DLib ;          // *Replaced* at compile time with an Include the Serial Library relevant to the display
+%%Display%%.IncludeSerial_Const4D ;        // *Replaced* at compile time with an Include the Constants file relevant to the display
+
+%%Display%%.AssignDisplaySerialtoLibrary ; // *Replaced* at compile time with an Assign of the correct Serial port to the correct library
+
+const int TIME_BETWEEN_SCREEN_REFRESH_MILLI = 8;
+const int TIME_BETWEEN_CHECKING_COMMS_MILLI = 2000;
+
+typedef struct NOTE* pNOTE;
+typedef struct NOTE_LIST_NODE* pNOTE_LIST_NODE;
+typedef struct NOTE_LIST* pNOTE_LIST;
+
+struct NOTE {
+private:
+    const static int SCREEN_WIDTH = 240;
+    const static int SCREEN_HEIGHT = 320;
+    const static int BORDER_WIDTH = 8;
+
+    const static int SPACE_BETWEEN_COLUMNS = 6;
+    const static int NOTE_RECTANGLE_WIDTH = 40;
+    const static int NOTE_RECTANGLE_HEIGHT = 20;
+
+    const static int NUM_PIXELS_MOVE_PER_REFRESH = 1;
+
+    int startX; // The x-xoordinate of the start of the rectangle
+    int endX; // The x-xoordinate of the end of the rectangle
+    int startY; // The y-xoordinate of the start of the rectangle
+    int endY; // The y-xoordinate of the end of the rectangle
+
+    int color; // The color of the rectangle
+    static bool displayRect(int rectStartX, int rectStartY, int rectEndX, int rectEndY, int rectColor);
+
+public:
+    NOTE(int col);
+    NOTE() : NOTE(0) { };
+    ~NOTE();
+    bool move();
+    void print();
+};
+
+struct NOTE_LIST_NODE {
+    pNOTE note;
+
+    pNOTE_LIST_NODE lastNode;
+    pNOTE_LIST_NODE nextNode;
+
+    NOTE_LIST_NODE(int col, pNOTE_LIST_NODE lastNode, pNOTE_LIST_NODE nextNode);
+    NOTE_LIST_NODE(int col) : NOTE_LIST_NODE(col, NULL, NULL) { };
+    NOTE_LIST_NODE() : NOTE_LIST_NODE(0) { };
+    ~NOTE_LIST_NODE();
+};
+
+struct NOTE_LIST {
+private:
+    pNOTE_LIST_NODE noteListHead;
+    pNOTE_LIST_NODE noteListTail;
+
+    bool addNodeAfter(int newNoteCol, pNOTE_LIST_NODE node);
+    bool removeNode(pNOTE_LIST_NODE nodeToRemove);
+
+public:
+    NOTE_LIST();
+    ~NOTE_LIST();
+    bool addNode(int newNoteCol);
+    void moveNotes();
+    bool isEmpty();
+    void print();
+};
+
+pNOTE_LIST noteList = new NOTE_LIST();
+
+long long lastTimeScreenRefresh = 0;
+long long lastTimeMonitorComms = 0;
+long long currentTime = 0;
+
+void checkForNewNote();
+
+
+
+
+
+
+
+
+
+void mycallback(int ErrCode, unsigned char Errorbyte) {
+  #define led 13
+  while (1) {
+    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(200);                // wait for a second
+    digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+    delay(200);                // wait for a second
+  }
+}
+
+void setup() {
+  // Ucomment to use the Serial link to the PC for debugging
+  //  Serial.begin(115200) ;        // serial to USB port
+  // Note! The next statement will stop the sketch from running until the serial monitor is started
+  //       If it is not present the monitor will be missing the initial writes
+  //    while (!Serial) ;             // wait for serial to be established
+
+  pinMode(RESETLINE, OUTPUT);       // Display reset pin
+  %%Display%%.Toggle_Reset_On ;       // *Replaced* at compile time with correct rest on logic for the attached display
+  delay(100);                       // wait for it to be recognised
+  %%Display%%.Toggle_Reset_Off ;      // *Replaced* at compile time with correct rest off logic for the attached display
+  // Uncomment when using ESP8266
+  //  pinMode(ESPRESET, OUTPUT);        // ESP reset pin
+  //  digitalWrite(ESPRESET, 1);        // Reset ESP
+  //  delay(100);                       // wait for it t
+  //  digitalWrite(ESPRESET, 0);        // Release ESP reset
+  delay(3000) ;                     // give display time to startup
+
+  // now start display as Serial lines should have 'stabilised'
+  %%Display%%.DisplaySerial.Begin_Speed ; // *Replaced* at compile time with command to start the serial port at the correct speed
+  Display.TimeLimit4D = 5000 ;      // 5 second timeout on all commands
+  Display.Callback4D = mycallback ;
+
+  // uncomment if using ESP8266
+  //  ESPserial.begin(115200) ;         // assume esp set to 115200 baud, it's default setting
+                                    // what we need to do is attempt to flip it to 19200
+                                    // the maximum baud rate at which software serial actually works
+                                    // if we run a program without resetting the ESP it will already be 19200
+                                    // and hence the next command will not be understood or executed
+  //  ESPserial.println("AT+UART_CUR=19200,8,1,0,0\r\n") ;
+  //  ESPserial.end() ;
+  //  delay(10) ;                         // Necessary to allow for baud rate changes
+  //  ESPserial.begin(19200) ;            // start again at a resonable baud rate
+  Display.gfx_ScreenMode(PORTRAIT) ; // change manually if orientation change
+  // put your setup code here, to run once:
+} // end Setup **do not alter, remove or duplicate this line**
+
+
+
+
+
+
+
+
+
+// NOTE
+// Private
+bool NOTE::displayRect(int rectStartX, int rectStartY, int rectEndX, int rectEndY, int rectColor) {
+    /*
+    * This function displays a rectangle on the screen
+    * This function returns false if the rectangle is completely off the bottom of the screen and returns true otherwise
+    */
+
+    if (rectStartY < 0) {
+        if (rectEndY < 0) {
+            // Rect is completely off screen (above)
+            return true;
+        } else {
+            // Rect is partially off screen (above)
+            rectStartY = 0;
+        }
+    }
+
+    if (rectEndY >= SCREEN_HEIGHT) {
+        if (rectStartY >= SCREEN_HEIGHT) {
+            // Rect is completely off screen (below)
+            return false;
+        } else {
+            // Rect is partially off screen (below)
+            rectEndY = SCREEN_HEIGHT - 1;
+        }
+    }
+
+    Display.gfx_RectangleFilled(rectStartX, rectStartY, rectEndX, rectEndY, rectColor);
+    return true;
+}
+
+// Public
+NOTE::NOTE(int col) {
+    /*
+    * NOTE constructor
+    */
+
+    startX = col * NOTE_RECTANGLE_WIDTH + BORDER_WIDTH + col * SPACE_BETWEEN_COLUMNS;
+    endX = startX+NOTE_RECTANGLE_WIDTH;
+    startY = -NOTE_RECTANGLE_HEIGHT;
+    endY = 0;
+
+    switch (col) {
+    case 0:
+        color = GREEN;
+        break;
+    case 1:
+        color = RED;
+        break;
+    case 2:
+        color = YELLOW;
+        break;
+    case 3:
+        color = BLUE;
+        break;
+    default:
+        color = ORANGE;
+    }
+}
+
+NOTE::~NOTE() {
+    /*
+    * NOTE destructor
+    */
+}
+
+bool NOTE::move() {
+    /*
+    * This function moves all the rectangles in the list down the screen by a predefined number of pixels
+    * If a rectangle is off the bottom of the screen, it returns false and gets removed from the list
+    * It returns true otherwise
+    */
+
+    displayRect(startX, startY, endX, startY+NUM_PIXELS_MOVE_PER_REFRESH, BLACK);
+
+    startY = startY+NUM_PIXELS_MOVE_PER_REFRESH;
+    endY = endY+NUM_PIXELS_MOVE_PER_REFRESH;
+
+    return displayRect(startX, startY, endX, endY, color);
+}
+
+void NOTE::print() {
+    printf("Y: %d - %d, X: %d - %d, Color: ", startY, endY, startX, endX);
+    switch (color) {
+    case GREEN:
+        printf("GREEN\n");
+        break;
+    case RED:
+        printf("RED\n");
+        break;
+    case YELLOW:
+        printf("YELLOW\n");
+        break;
+    case BLUE:
+        printf("BLUE\n");
+        break;
+    default:
+        printf("ORANGE\n");
+    }
+}
+
+// NOTE_LIST_NODE
+NOTE_LIST_NODE::NOTE_LIST_NODE(int col, pNOTE_LIST_NODE lastNode, pNOTE_LIST_NODE nextNode) {
+    /*
+    * NOTE_LIST_NODE constructor
+    */
+
+    note = new NOTE(col);
+
+    this->lastNode = lastNode;
+    this->nextNode = nextNode;
+}
+
+NOTE_LIST_NODE::~NOTE_LIST_NODE() {
+    /*
+    * NOTE_LIST_NODE destructor
+    */
+
+    delete note;
+}
+
+// NOTE_LIST
+NOTE_LIST::NOTE_LIST() {
+    /*
+    * NOTE_LIST constructor
+    */
+
+
+    noteListHead = NULL;
+    noteListTail = NULL;
+}
+
+NOTE_LIST::~NOTE_LIST() {
+    /*
+    * NOTE_LIST destructor
+    */
+
+    while (noteListHead != NULL) {
+        removeNode(noteListHead);
+    }
+}
+
+bool NOTE_LIST::addNodeAfter(int newNoteCol, pNOTE_LIST_NODE node) {
+    /*
+    * This function adds a node after the node "node" if the
+    * desired column is acceptable (0 - 4), and returns true
+    * It returns false otherwise
+    */
+
+    if (0 <= newNoteCol && newNoteCol <= 4) {
+        if (noteListHead == NULL) {
+            // if the list is empty
+            noteListHead = new NOTE_LIST_NODE(newNoteCol);
+            noteListTail = noteListHead;
+        }
+        else {
+            node->nextNode = new NOTE_LIST_NODE(newNoteCol, node, node->nextNode);
+
+            if (node->nextNode->nextNode != NULL) {
+                // if node is not the noteListTail
+                node->nextNode->nextNode->lastNode = node->nextNode;
+            }
+            else {
+                noteListTail = node->nextNode;
+            }
+        }
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool NOTE_LIST::addNode(int newNoteCol) {
+    /*
+    * This function adds a node to the end of the list if the
+    * desired column is acceptable (0 - 4), and returns true
+    * It returns false otherwise
+    */
+
+    return addNodeAfter(newNoteCol, noteListTail);
+}
+
+bool NOTE_LIST::removeNode(pNOTE_LIST_NODE nodeToRemove) {
+    /*
+    * This function removes the specified node from the list
+    */
+
+    if (nodeToRemove != NULL) {
+        if (nodeToRemove != noteListHead) {
+            // if the node to remove is not the first note in the list
+            nodeToRemove->lastNode->nextNode = nodeToRemove->nextNode;
+        }
+        else {
+            noteListHead = nodeToRemove->nextNode;
+        }
+
+        if (nodeToRemove != noteListTail) {
+            // if the node to remove is not the last note in the list
+            nodeToRemove->nextNode->lastNode = nodeToRemove->lastNode;
+        }
+        else {
+            noteListTail = nodeToRemove->lastNode;
+        }
+
+        delete nodeToRemove;
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+void NOTE_LIST::moveNotes() {
+    /*
+    * This function moves each note down the screen
+    * If a note drops off the bottom of the screen, it is removed from the list
+    */
+
+    for (pNOTE_LIST_NODE node = noteListHead; node != NULL; node) {
+        if (node->note->move() == false) {
+            // if the note is completely off the bottom of the screen
+            if (node == noteListHead) {
+                // if node is the first note in the list
+                removeNode(node);
+                node = noteListHead;
+            }
+            else if (node == noteListTail) {
+                // if node is the last node in the list
+                removeNode(node);
+            }
+            else {
+                node = node->nextNode;
+                removeNode(node->lastNode);
+            }
+        }
+        else {
+            node = node->nextNode;
+        }
+    }
+}
+
+bool NOTE_LIST::isEmpty() {
+    return noteListHead == NULL;
+}
+
+void NOTE_LIST::print() {
+    /*
+    * This function prints the data of each note
+    */
+
+    printf("Note List...\n");
+    for (pNOTE_LIST_NODE node = noteListHead; node != NULL; node = node->nextNode) {
+        node->note->print();
+    }
+    printf("\n\n");
+}
+
+
+
+
+
+
+
+
+
+void checkCommsForNewNote() {
+  /*
+  * This function checks the communications channel for new notes
+  * If new notes are available, add them to the list
+  */
+
+  int noteBitMask = 0;
+
+  // check communications channel for new notes
+  noteBitMask = rand() % 32; // this simulates recieving a new bitmask for testing (normally commented)
+
+  if (noteBitMask != 0) {
+    // if there are new notes available
+    for (int col = 0; noteBitMask != 0 && col <= 4; noteBitMask >>= 1, col++) {
+      if ((noteBitMask & 0x01) == 0x01) {
+        noteList->addNode(col);
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+void loop() {
+  currentTime = millis();
+
+  if (currentTime - lastTimeMonitorComms >= TIME_BETWEEN_CHECKING_COMMS_MILLI) {
+    // Check comms for new bitmask value
+    checkCommsForNewNote();
+    lastTimeMonitorComms = currentTime;
+    currentTime = millis();
+  }
+
+  if (currentTime - lastTimeScreenRefresh >= TIME_BETWEEN_SCREEN_REFRESH_MILLI && !noteList->isEmpty()) {
+    // move the notes down the screen
+    noteList->moveNotes();
+    lastTimeScreenRefresh = currentTime;
+  }
+}
+
+
