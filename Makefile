@@ -20,6 +20,8 @@ AirGuitarHero:
 
 cpy:
 	cp *.txt $(OUTDIR)
+	mkdir -p $(PUBDIR)/wave-files/
+	cp -R wave-files/* $(PUBDIR)/wave-files/ 
 
 clean:
 	rm -f $(OUTDIR)/$(TARGET)
