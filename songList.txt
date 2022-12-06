@@ -1,4 +1,4 @@
 
-song A,audioFileLocationHere,leaderboardFileLocationHere,SampleNotes.txt,
-song B,audioFileLocationHere,leaderboardFileLocationHere,notesFileLocationHere,
+Twinkle Twinkle Little Star,wave-files/TwinkleTwinkleLittleStar.wav,leaderboardFileLocationHere,SampleNotes.txt,
+Twinkle Twinkle Little Star,wave-files/TwinkleTwinkleLittleStar.wav,leaderboardFileLocationHere,twinkle.txt,
 song C,audioFileLocationHere,leaderboardFileLocationHere,notesFileLocationHere,

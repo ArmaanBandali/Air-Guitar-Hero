@@ -9,6 +9,7 @@
 #include "songList.h"
 #include "gameLogicHandler.h"
 #include "accelerometer.h"
+#include "wave_player.h"
 
 bool gameOver = false;
 bool noteHit = false;
@@ -68,6 +69,7 @@ static void *GameLogicHandler_startThread(void *arg)
 void GameLogicHandler_startLogicHandler(songInfo selectedSong)
 {
     DisplayModel_startDisplayModel(selectedSong);
+    wave_player_playSong(selectedSong.audioFileLocation);
     pthread_attr_init(&attr);
     pthread_create(&gameLogicThread, &attr, GameLogicHandler_startThread, NULL);
 
@@ -81,6 +83,7 @@ void GameLogicHandler_startLogicHandler(songInfo selectedSong)
 void GameLogicHandler_stopLogicHandler()
 {
     gameOver = true;
+    printf("\n\nYou rock! Your final score is: %d\n\n", GameLogicHandler_getScore());
     pthread_join(gameLogicThread, NULL);
 }
 

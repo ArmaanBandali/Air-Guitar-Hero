@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 #include "displayModel.h"
 #include "buttonArray.h"
@@ -39,19 +40,27 @@ int main(int argc, char **argv)
 
     while(true)
     {
-        pthread_create(&gameInstanceThread, &attr, runGameInstance, NULL);
+        /* pthread_create(&gameInstanceThread, &attr, runGameInstance, NULL);
 
         void *returnStatus;
         pthread_join(gameInstanceThread, &returnStatus);
 
-        if (((int)returnStatus) == STATUS_QUIT)
+        if (*(int*)returnStatus == STATUS_QUIT)
+        {
+            cleanup();
+            free(returnStatus);
+            break;
+        }
+        else if (*(int*)returnStatus == STATUS_CONTINUE)
+        {
+            free(returnStatus);
+            continue;
+        } */
+        int status = printHomeScreen();
+         if (status == STATUS_QUIT)
         {
             cleanup();
             break;
-        }
-        else if (((int)returnStatus) == STATUS_CONTINUE)
-        {
-            continue;
         }
     }
 
